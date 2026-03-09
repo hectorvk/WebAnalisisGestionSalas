@@ -329,7 +329,7 @@
         <h2>¡Informe Enviado!</h2>
         <p style="color: var(--text-dim); margin-top: 10px;">Los detalles de las salas han sido enviados correctamente.
         </p>
-        <button class="btn-next" style="margin-top: 30px;" onclick="window.location.href='portada.html'">VOLVER AL
+        <button class="btn-next" style="margin-top: 30px;" onclick="window.location.href='index.html'">VOLVER AL
             INICIO</button>
     </div>
 
@@ -405,6 +405,14 @@
                 stepDiv.dataset.step = i + 1;
                 stepDiv.innerHTML = `
                     <div class="question">Configuración de la Sala ${i}</div>
+                    
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label class="subtitle" style="margin-bottom: 8px; display: block;">Nombre o Ubicación de la sala:</label>
+                        <input type="text" id="name-${i}" placeholder="Ej: Sala de Juntas, Planta 2 - Azul..." 
+                            style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--glass); color: var(--text);"
+                            oninput="updateRoomName(${i})">
+                    </div>
+
                     <div class="icon-grid">
                         <div class="icon-card" onclick="toggleIcon(this, ${i}, 'proyector')">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13L2 17h20l-3-4"/><rect x="5" y="7" width="14" height="6" rx="2"/></svg>
@@ -445,7 +453,7 @@
                     <textarea id="obs-${i}" placeholder="Ej: Pizarra blanca, cafetera, luz regulable..." oninput="updateRoomObs(${i})"></textarea>
                 `;
                 container.appendChild(stepDiv);
-                responses[`sala_${i}`] = { proyector: false, audio: false, hdmi: false, vga: false, ethernet: false, wifi: false, enchufes: 0, obs: "" };
+                responses[`sala_${i}`] = { name: "", proyector: false, audio: false, hdmi: false, vga: false, ethernet: false, wifi: false, enchufes: 0, obs: "" };
             }
 
             // Paso Final: Resumen
@@ -472,6 +480,10 @@
             count = Math.max(0, count + delta);
             responses[`sala_${salaIdx}`].enchufes = count;
             document.getElementById(`enchufes-${salaIdx}`).innerText = count;
+        }
+
+        function updateRoomName(salaIdx) {
+            responses[`sala_${salaIdx}`].name = document.getElementById(`name-${salaIdx}`).value;
         }
 
         function updateRoomObs(salaIdx) {
@@ -517,7 +529,7 @@
                 if (s.wifi) servs.push("WiFi");
 
                 html += `<div style="margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:5px;">
-                    <strong>Sala ${i}:</strong> ${servs.join(", ") || "Sin servicios"} | ⚡ ${s.enchufes}<br>
+                    <strong>${s.name || `Sala ${i}`}:</strong> ${servs.join(", ") || "Sin servicios"} | ⚡ ${s.enchufes}<br>
                     <small>Obs: ${s.obs || "-"}</small>
                 </div>`;
             }
@@ -537,7 +549,7 @@
 
             for (let i = 1; i <= totalSalas; i++) {
                 const s = responses[`sala_${i}`];
-                const key = `Sala_${i}`;
+                const key = s.name ? `Sala_${i}_(${s.name})` : `Sala_${i}`;
                 dataToEmail[key] = `Sevicios: ${[s.proyector ? "Proyector" : "", s.audio ? "Audio" : "", s.hdmi ? "HDMI" : "", s.vga ? "VGA" : "", s.ethernet ? "Cable" : "", s.wifi ? "WiFi" : ""].filter(x => x).join(", ")} | Enchufes: ${s.enchufes} | Obs: ${s.obs}`;
             }
 
