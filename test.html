@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurador Pro: App de Reserva de Salas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #e11d48;
+            /* Red */
+            --primary-dark: #be123c;
+            --secondary: #7c3aed;
+            /* Purple */
+            --bg: #ffffff;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-dim: #64748b;
+            --glass: #f8fafc;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(225, 29, 72, 0.03) 0%, transparent 35%),
+                radial-gradient(circle at 90% 90%, rgba(124, 58, 237, 0.03) 0%, transparent 35%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            /* Permite que el contenido empiece arriba si es largo */
+            padding: 40px 0;
+            /* Espacio arriba y abajo para el scroll */
+            overflow-y: auto;
+            /* Habilita el scroll vertical */
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        h1 span {
+            color: var(--primary);
+        }
+
+        p.subtitle {
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--glass);
+            border-radius: 10px;
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .step {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Textarea Styles */
+        .observations-section {
+            margin-top: 25px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+
+        .observations-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            color: var(--text);
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: all 0.2s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .word-count {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .question {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .option-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .option-card.selected {
+            background: rgba(225, 29, 72, 0.05);
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(225, 29, 72, 0.15);
+        }
+
+        .radio-circle {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .option-card.selected .radio-circle {
+            border-color: var(--primary);
+        }
+
+        .option-card.selected .radio-circle::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+
+        .btn-prev {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-prev:hover {
+            border-color: var(--text-dim);
+        }
+
+        .btn-next {
+            background: var(--primary);
+            border: none;
+            color: white;
+            box-shadow: 0 4px 10px rgba(225, 29, 72, 0.2);
+        }
+
+        .btn-next:hover {
+            transform: translateY(-2px);
+            background-color: var(--primary-dark);
+            box-shadow: 0 6px 15px rgba(225, 29, 72, 0.3);
+        }
+
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #summary-content {
+            line-height: 1.6;
+        }
+
+        .summary-item {
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .summary-label {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            display: block;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Success Message Overlay */
+        .success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .success-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 10px 30px rgba(225, 29, 72, 0.3);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-next.loading .spinner {
+            display: inline-block;
+        }
+
+        .btn-next.loading span {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="success-message" class="success-overlay">
+        <div class="success-icon">✓</div>
+        <h2>¡Informe Enviado!</h2>
+        <p style="color: var(--text-dim); margin-top: 10px;">Los requisitos han sido enviados a tu correo.</p>
+        <button class="btn-next" style="margin-top: 30px;" onclick="location.reload()">VOLVER A EMPEZAR</button>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <header>
+                <h1>Análisis de <span>Requisitos</span></h1>
+                <p class="subtitle">Configuración App Reservas</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </header>
+
+            <main id="quiz-container">
+                <!-- Pasos del Test -->
+                <div class="step active" data-step="1">
+                    <div class="question">¿Cómo deben gestionarse las reservas simultáneas?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'concurrency', 'Pessimistic Locking')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Bloqueo Pesimista</strong><br>
+                                <small>Bloquea la sala en cuanto alguien abre el formulario.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'concurrency', 'Optimistic Locking')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Bloqueo Optimista</strong><br>
+                                <small>Permite ver disponiblidad a todos, falla al confirmar si alguien ganó.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'concurrency', 'Queue System')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Sistema de Cola</strong><br>
+                                <small>Las peticiones entran en orden estricto de llegada.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="2">
+                    <div class="question">¿Cuál es el volumen de tráfico esperado?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'traffic', 'Standard')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Estándar</strong><br>
+                                <small>Accesos distribuidos a lo largo del día.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'traffic', 'High Peak')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Picos Intensos</strong><br>
+                                <small>Muchos usuarios reservando al mismo tiempo (ej. lunes 9 AM).</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="3">
+                    <div class="question">¿Cómo se autenticarán los 100 trabajadores?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'auth', 'SSO/Azure AD')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>SSO (Azure AD / Google)</strong><br>
+                                <small>Integración corporativa sin contraseñas nuevas.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'auth', 'Internal DB')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Base de Datos Interna</strong><br>
+                                <small>Gestión de usuarios propia de la aplicación.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="4">
+                    <div class="question">¿Tecnología preferida para el Tiempo Real?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'realtime', 'WebSockets')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>WebSockets</strong><br>
+                                <small>Actualización instantánea completa (bidireccional).</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'realtime', 'SSE')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Server-Sent Events</strong><br>
+                                <small>El servidor empuja cambios de disponibilidad a los clientes.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'realtime', 'Polling')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Short Polling</strong><br>
+                                <small>Consultas periódicas cada pocos segundos.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="5">
+                    <div class="question">¿Prioridad para dispositivos móviles?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'mobility', 'Mobile First')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Mobile First</strong><br>
+                                <small>App nativa o PWA para reservar sobre la marcha.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'mobility', 'Desktop Focus')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Enfoque Desktop</strong><br>
+                                <small>Uso principal desde puestos de oficina.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="6">
+                    <div class="question">¿Sistema de notificaciones deseado?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'notifications', 'Rich Integration')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Multicanal (Slack/Teams/Push)</strong><br>
+                                <small>Notificaciones inmediatas donde está el usuario.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'notifications', 'Email Only')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Solo Email</strong><br>
+                                <small>Confirmaciones y recordatorios estándar.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="7">
+                    <div class="question">¿Necesitas analíticas de uso?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'analytics', 'Advanced Dashboard')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Dashboard Avanzado</strong><br>
+                                <small>Mapas de calor, ocupación por horas y eficiencia.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'analytics', 'Basic Logs')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Logs Básicos</strong><br>
+                                <small>Solo historial de quién reservó qué y cuándo.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="8">
+                    <div class="question">¿Integración con Hardware Físico?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'hardware', 'IoT/Screens')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Tabletas/QR en Puertas</strong><br>
+                                <small>Visualización de estado en la propia sala.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'hardware', 'Software Only')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Solo Software</strong><br>
+                                <small>Gestión exclusiva desde dispositivos personales.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="9">
+                    <div class="question">¿Políticas de reserva estrictas?</div>
+                    <div class="options">
+                        <div class="option-card" onclick="selectOption(this, 'policies', 'Strict')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Políticas Estrictas</strong><br>
+                                <small>Límites de tiempo, penalizaciones por no asistir.</small>
+                            </div>
+                        </div>
+                        <div class="option-card" onclick="selectOption(this, 'policies', 'Flexible')">
+                            <div class="radio-circle"></div>
+                            <div>
+                                <strong>Flexibilidad Total</strong><br>
+                                <small>Sin restricciones, basado en la confianza.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step" data-step="10">
+                    <div class="question">Resumen Final de Requisitos</div>
+                    <div id="summary-content">
+                        <!-- Se llena dinámicamente -->
+                    </div>
+
+                    <div class="observations-section">
+                        <label class="observations-label" for="observations">Otras observaciones:</label>
+                        <textarea id="observations"
+                            placeholder="Escribe aquí cualquier detalle adicional, requisitos específicos o dudas... (máx. 1000 palabras)"
+                            oninput="updateWordCount()"></textarea>
+                        <div id="word-count" class="word-count">Palabras: 0 / 1000</div>
+                    </div>
+
+                    <div style="margin-top: 20px; font-size: 0.9rem; color: var(--text-dim);">
+                        🎉 ¡Excelente! Has completado el análisis de los 10 puntos clave.
+                    </div>
+                </div>
+            </main>
+
+            <footer class="button-group">
+                <button id="btn-prev" class="btn-prev" onclick="changeStep(-1)"
+                    style="visibility: hidden;">Anterior</button>
+                <button id="btn-next" class="btn-next" onclick="changeStep(1)" disabled>
+                    <span>SIGUIENTE</span>
+                    <div class="spinner"></div>
+                </button>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 10;
+        const responses = {};
+
+        function selectOption(element, key, value) {
+            const stepElement = element.closest('.step');
+            stepElement.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+            element.classList.add('selected');
+            responses[key] = value;
+            document.getElementById('btn-next').disabled = false;
+        }
+
+        function changeStep(n) {
+            if (currentStep === totalSteps && n === 1) return;
+            document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+            currentStep += n;
+            document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+            updateUI();
+        }
+
+        function updateUI() {
+            const progress = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('btn-prev').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+
+            const btnNext = document.getElementById('btn-next');
+            const btnSpan = btnNext.querySelector('span');
+
+            if (currentStep === totalSteps) {
+                btnSpan.innerHTML = 'ENVIAR POR CORREO';
+                btnNext.onclick = sendToEmail;
+                renderSummary();
+            } else {
+                btnSpan.innerHTML = 'SIGUIENTE';
+                btnNext.onclick = () => changeStep(1);
+                const isActiveStepAnswered = document.querySelector(`.step[data-step="${currentStep}"] .selected`);
+                btnNext.disabled = !isActiveStepAnswered;
+            }
+        }
+
+        function renderSummary() {
+            const summary = document.getElementById('summary-content');
+            const items = [
+                { label: 'Estrategia de Concurrencia', val: responses.concurrency },
+                { label: 'Perfil de Tráfico', val: responses.traffic },
+                { label: 'Sistema de Autenticación', val: responses.auth },
+                { label: 'Actualización Tiempo Real', val: responses.realtime },
+                { label: 'Enfoque de Movilidad', val: responses.mobility },
+                { label: 'Sist. Notificaciones', val: responses.notifications },
+                { label: 'Analíticas y Reports', val: responses.analytics },
+                { label: 'Integración Hardware', val: responses.hardware },
+                { label: 'Políticas de Reserva', val: responses.policies }
+            ];
+
+            summary.innerHTML = items.map(item => `
+                <div class="summary-item">
+                    <span class="summary-label">${item.label}:</span>
+                    <span class="summary-value">${item.val || 'No definido'}</span>
+                </div>
+            `).join('');
+        }
+
+        function updateWordCount() {
+            const text = document.getElementById('observations').value.trim();
+            const words = text ? text.split(/\s+/).length : 0;
+            const countDisplay = document.getElementById('word-count');
+            countDisplay.innerText = `Palabras: ${words} / 1000`;
+
+            if (words > 1000) {
+                countDisplay.style.color = 'var(--secondary)';
+            } else {
+                countDisplay.style.color = 'var(--text-dim)';
+            }
+            responses.observations = text;
+        }
+
+        function sendToEmail() {
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzCttPgs1CQmNmQzhDkQJndJUWQTGPrNMwnhucH849hQYm6drip4m39Tfd2a0W2ugGM/exec";
+
+            if (SCRIPT_URL.includes("TU_URL_DE_GOOGLE")) {
+                alert("Por favor, configura la SCRIPT_URL con tu propia URL de Google Apps Script.");
+                downloadPlan();
+                return;
+            }
+
+            const btnNext = document.getElementById('btn-next');
+            btnNext.classList.add('loading');
+            btnNext.disabled = true;
+
+            const mapping = {
+                concurrency: 'Estrategia de Concurrencia',
+                traffic: 'Perfil de Tráfico',
+                auth: 'Sistema de Autenticación',
+                realtime: 'Actualización Tiempo Real',
+                mobility: 'Enfoque de Movilidad',
+                notifications: 'Sistema de Notificaciones',
+                analytics: 'Analíticas y Reports',
+                hardware: 'Integración Hardware',
+                policies: 'Políticas de Reserva'
+            };
+
+            const data = {};
+            let messageBody = "Resumen de Requisitos:\n\n";
+            for (let key in mapping) {
+                const label = mapping[key];
+                const value = responses[key] || 'No definido';
+                messageBody += `${label}: ${value}\n`;
+                data[label] = value;
+            }
+
+            if (responses.observations) {
+                messageBody += `\nObservaciones adicionales:\n${responses.observations}\n`;
+                data["Observaciones"] = responses.observations;
+            }
+
+            // Enviamos como JSON a Google Apps Script
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Importante para Google Apps Script
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(() => {
+                    // Con 'no-cors' no podemos leer la respuesta, pero asumimos éxito si no hay error de red
+                    document.getElementById('success-message').classList.add('show');
+                })
+                .catch(error => {
+                    alert("Hubo un problema al enviar el correo. Se descargará el archivo en su lugar.");
+                    downloadPlan();
+                })
+                .finally(() => {
+                    btnNext.classList.remove('loading');
+                    btnNext.disabled = false;
+                });
+        }
+
+        function downloadPlan() {
+            let content = "INFORME DE REQUISITOS - APP RESERVA DE SALAS\n";
+            content += "==========================================\n\n";
+
+            const mapping = {
+                concurrency: 'Estrategia de Concurrencia',
+                traffic: 'Perfil de Tráfico',
+                auth: 'Sistema de Autenticación',
+                realtime: 'Actualización Tiempo Real',
+                mobility: 'Enfoque de Movilidad',
+                notifications: 'Sistema de Notificaciones',
+                analytics: 'Analíticas y Reports',
+                hardware: 'Integración Hardware',
+                policies: 'Políticas de Reserva'
+            };
+
+            for (let key in mapping) {
+                content += `${mapping[key]}: ${responses[key] || 'No definido'}\n`;
+            }
+
+            if (responses.observations) {
+                content += `\nOTRAS OBSERVACIONES:\n${responses.observations}\n`;
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'requisitos_app_salas.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+
+</html>
